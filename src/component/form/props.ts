@@ -1,5 +1,5 @@
-import type { PropsWithChildren } from "react";
+// import type { PropsWithChildren } from "react";
 
-export type FormProps = {
-    id: string;
-} & PropsWithChildren
+// export type FormProps = {
+//     name:string;
+// } & PropsWithChildren

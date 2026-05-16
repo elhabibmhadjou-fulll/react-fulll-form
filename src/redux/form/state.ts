@@ -2,6 +2,7 @@ export type FormState = Record<string, FormStateItem>;
 
 export type FormStateItem = {
     id: string;
+    name: string;
     status: "idle" | "submitting" | "submitted" | "error"
     fields: Record<string, FieldState>
 }
@@ -16,6 +17,7 @@ export interface FieldState {
 const forms: FormState = {
     "form1": {
         id: "form1",
+        name: "Form 1",
         status: "idle",
         fields: {
             "field1": {

@@ -61,23 +61,23 @@ export const formSlice = createSlice({
                 return;
             }
         },
-        registerFields(state: FormState, action: PayloadAction<{
-            formId: FormState[string]["id"];
-            fields: FieldState[];
+        registerField(state: FormState, action: PayloadAction<{
+            formId: string;
+            field: FieldState;
         }>) {
-            const { formId, fields } = action.payload;
-            state[formId] = {
-                id: formId,
-                status: "idle",
-                fields: Object.fromEntries(
-                    fields.map((f) => [f.id, {
-                        id: f.id,
-                        value: f.value,
-                        status: f.status,
-                        name: f.name,
-                    }])
-                )
+            const { formId, field } = action.payload;
+            if (!state[formId]) {
+                state[formId] = {
+                    id: formId,
+                    name: formId,
+                    status: field.status === "error" ? "error" : "idle",
+                    fields: {
+                        [field.id]: field
+                    }
+                }
+                return;
             }
+            state[formId].fields[field.id] = field;
         },
         resetForm: () => initialState
     },

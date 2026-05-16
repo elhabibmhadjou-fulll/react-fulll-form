@@ -15,6 +15,7 @@ export function TextField({ validator, ...props }: TextFieldProps) {
     const dispatch = useAppDispatch();
 
     const hasError = validator
+        .setOptions({ required: props.required })
         .handle(field?.value ?? "")
         .hasError();
 

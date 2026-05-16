@@ -1,7 +1,17 @@
 
+export type ValidationOption = {
+    required?: boolean;
+}
+
 export abstract class IValidator<T> {
     private value?: T;
     private errors: Map<number, string | null> = new Map();
+    private options?: ValidationOption;
+
+    public setOptions(options: ValidationOption) {
+        this.options = options;
+        return this;
+    }
 
     public hasError(): boolean {
         return Array.from(this.errors.values()).some(v => v !== null);
@@ -44,10 +54,27 @@ export abstract class IValidator<T> {
 
     protected abstract validate(value?: T): void;
 
+    protected isEmpty(value?: T): boolean {
+        if (value === undefined || value === null) return true;
+        if (typeof value === 'string') return value.trim() === '';
+        return false;
+    }
+
     public handle(value?: T) {
         this.value = value;
         this.errors = new Map();
-        this.validate(value);
+
+        const empty = this.isEmpty(value);
+
+        if (this.options?.required && empty) {
+            this.addError("This field is required");
+            return this;
+        }
+
+        if (!empty) {
+            this.validate(value);
+        }
+
         return this;
     }
 

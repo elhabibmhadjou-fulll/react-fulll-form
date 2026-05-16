@@ -6,7 +6,8 @@ import { PhoneValidator } from './validator/PhoneValidator'
 import { EmailValidator } from './validator/EmailValidator'
 import { UsernameValidator } from './validator/UsernameValidator'
 
-const FORM_NAME_1 = "exampleForm";
+const FORM_NAME_1 = "exampleForm1";
+const FORM_NAME_2 = "exampleForm2";
 
 function App() {
   return <Stack spacing={4} direction={"row"}>
@@ -20,6 +21,7 @@ function App() {
             label='Name'
             placeholder='Enter your name'
             validator={new UsernameValidator()}
+            required
           />
           <TextField
             formId={FORM_NAME_1}
@@ -35,7 +37,7 @@ function App() {
             placeholder='Enter your password'
             validator={new PhoneValidator()}
           />
-          <SubmiButton formId={FORM_NAME_1}/>
+          <SubmiButton formId={FORM_NAME_1} />
         </Stack>
       </div>
 
@@ -44,14 +46,30 @@ function App() {
       <Box sx={{ height: "20px" }} />
 
 
-      {/* <Form name="exampleForm2">
-        <Stack spacing={2}>
-          <Typography variant='h6'>Formulaire 2</Typography>
-          <TextField name='name' label='Name' placeholder='Enter your name' value='test 2' />
-          <TextField name='email' label='Email' placeholder='Enter your email' />
-          <TextField name='password' label='Password' placeholder='Reset your password' />
-        </Stack>
-      </Form> */}
+      <Stack spacing={2}>
+        <Typography variant='h6'>Formulaire 2</Typography>
+        <TextField
+          formId={FORM_NAME_2}
+          name='name'
+          label='Name'
+          placeholder='Enter your name' value='test 2'
+          validator={new UsernameValidator()}
+        />
+        <TextField
+          formId={FORM_NAME_2}
+          name='email'
+          label='Email'
+          placeholder='Enter your email'
+          validator={new EmailValidator()}
+        />
+        <TextField
+          formId={FORM_NAME_2}
+          name='password'
+          label='Password'
+          placeholder='Reset your password'
+          validator={new PhoneValidator()}
+        />
+      </Stack>
     </Stack>
 
     <HistoryPanel />

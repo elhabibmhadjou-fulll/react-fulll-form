@@ -1,14 +1,15 @@
-import { Box, List, ListItem, Stack } from "@mui/material";
-import { FORM_NAME_1, useAppSelector } from "../../redux";
+import { Box, List, Typography } from "@mui/material";
+import { useAppSelector } from "../../redux";
 
-export function HistoryPanel() {
-    const form = useAppSelector((state) => state.form[FORM_NAME_1]);
+export function DebugPanel() {
+    const form = useAppSelector((state) => state.form);
 
     if (!form) {
         return null;
     }
 
     return <Box sx={{ width: "250px" }} role="presentation" >
+        <Typography variant="h6">Form state</Typography>
         <pre>
             {JSON.stringify(form, null, 2)}
         </pre>

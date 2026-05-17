@@ -1,9 +1,10 @@
 import { Button } from "@mui/material";
-import { formSlice, useAppDispatch, useAppSelector } from "../../redux";
-import { hasFieldError } from "../../redux/form/hasFielError";
+import { useAppDispatch, useAppSelector } from "../../redux";
+import { hasFieldError } from "../../fulll-lib/form-core/util/hasFieldError";
 import type { SubmitButtonProps } from "./props";
+import { createCarThunk } from "../../redux/car/thunk";
 
-export function SubmiButton(props: SubmitButtonProps) {
+export function SubmitButton(props: SubmitButtonProps) {
     const formId = props.formId;
     const dispatch = useAppDispatch();
     const form = useAppSelector((state) => state.form[formId]);
@@ -16,9 +17,7 @@ export function SubmiButton(props: SubmitButtonProps) {
         variant="contained"
         color="primary"
         type="submit"
-        onClick={() => dispatch(formSlice.actions.submitting({
-            formId,
-        }))}
+        onClick={() => dispatch(createCarThunk())}
         disabled={hasFieldError(form) || form.status === "submitting"}
         loading={form.status === "submitting"}
     >

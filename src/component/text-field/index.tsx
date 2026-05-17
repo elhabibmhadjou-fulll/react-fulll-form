@@ -1,7 +1,7 @@
 import { TextField as MuiTextField, Stack } from "@mui/material";
 import type { TextFieldProps } from "./props";
 import { formSlice, useAppDispatch, useAppSelector } from "../../redux";
-import { getFormFieldById } from "../../redux/form/getFormFieldByName";
+import { getFormFieldById } from "../../fulll-lib/form-core/util/getFormFieldByName";
 import { v4 as uuidv4 } from "uuid";
 import { useEffect, useMemo, useState } from "react";
 

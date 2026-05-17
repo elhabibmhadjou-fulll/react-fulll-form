@@ -1,5 +1,5 @@
-import type { FormId } from "../../redux";
+import type { FormStateId } from "../../redux";
 
 export type SubmitButtonProps = {
-    formId: FormId;
+    formId: FormStateId;
 }

@@ -1,3 +1,4 @@
+import type { FormId } from "../../redux";
 import type { IValidator } from "../../validator/IValidator";
 
 export type TextFieldProps = {
@@ -6,7 +7,7 @@ export type TextFieldProps = {
     placeholder?: string;
     value?: string;
     required?: boolean;
-    formId: string;
+    formId: FormId;
     validator: IValidator<string>;
     behaviors?: []
 }

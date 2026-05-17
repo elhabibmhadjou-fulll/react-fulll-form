@@ -5,11 +5,11 @@ import { SubmiButton } from './component/submit-button'
 import { PhoneValidator } from './validator/PhoneValidator'
 import { EmailValidator } from './validator/EmailValidator'
 import { UsernameValidator } from './validator/UsernameValidator'
-
-const FORM_NAME_1 = "exampleForm1";
-const FORM_NAME_2 = "exampleForm2";
+import { useState } from 'react'
+import { FORM_NAME_1 } from './redux'
 
 function App() {
+  const [active, setActive] = useState(false);
   return <Stack spacing={4} direction={"row"}>
     <Stack spacing={2} direction={"column"} sx={{ width: "100%", maxWidth: "50vw" }}>
       <div >
@@ -30,13 +30,15 @@ function App() {
             placeholder='Enter your email'
             validator={new EmailValidator()}
           />
-          <TextField
+          {active && <TextField
             formId={FORM_NAME_1}
-            name='password'
-            label='Password'
-            placeholder='Enter your password'
+            name='phone'
+            label='phone'
+            placeholder='Enter your phone'
             validator={new PhoneValidator()}
-          />
+            required
+          />}
+          <button onClick={() => setActive(!active)}>{active ? "demonter" : "monter"}</button>
           <SubmiButton formId={FORM_NAME_1} />
         </Stack>
       </div>
@@ -46,7 +48,7 @@ function App() {
       <Box sx={{ height: "20px" }} />
 
 
-      <Stack spacing={2}>
+      {/* <Stack spacing={2}>
         <Typography variant='h6'>Formulaire 2</Typography>
         <TextField
           formId={FORM_NAME_2}
@@ -69,7 +71,7 @@ function App() {
           placeholder='Reset your password'
           validator={new PhoneValidator()}
         />
-      </Stack>
+      </Stack> */}
     </Stack>
 
     <HistoryPanel />

@@ -3,6 +3,10 @@ import type { FieldState, FormState } from "./state";
 import { hasFieldError } from "./hasFielError";
 import { hasField } from "./hasField";
 
+export const FORM_NAME_1 = "exampleForm1";
+export const FORM_NAME_2 = "exampleForm2";
+export type FormId = typeof FORM_NAME_1 | typeof FORM_NAME_2;
+
 const initialState = {} as FormState
 
 export const formSlice = createSlice({
@@ -10,7 +14,7 @@ export const formSlice = createSlice({
     initialState,
     reducers: {
         submitting: (state: FormState, action: PayloadAction<{
-            formId: FormState[string]["id"];
+            formId: FormId;
         }>) => {
             const { formId } = action.payload;
             const form = state[formId];
@@ -21,7 +25,7 @@ export const formSlice = createSlice({
             form.status = "submitting";
         },
         submitted: (state: FormState, action: PayloadAction<{
-            formId: FormState[string]["id"];
+            formId: FormId;
         }>) => {
             const { formId } = action.payload;
             const form = state[formId];
@@ -32,8 +36,8 @@ export const formSlice = createSlice({
             form.status = "submitted";
         },
         updateField: (state: FormState, action: PayloadAction<{
-            formId: FormState[string]["id"];
-            fieldId: FormState[string]["id"];
+            formId: FormId;
+            fieldId: string;
             value: string;
             status: "idle" | "valid" | "error";
         }>) => {
@@ -62,7 +66,7 @@ export const formSlice = createSlice({
             }
         },
         registerField(state: FormState, action: PayloadAction<{
-            formId: string;
+            formId: FormId;
             field: FieldState;
         }>) {
             const { formId, field } = action.payload;
@@ -78,6 +82,17 @@ export const formSlice = createSlice({
                 return;
             }
             state[formId].fields[field.id] = field;
+        },
+        unregisterField(state: FormState, action: PayloadAction<{
+            formId: FormId;
+            fieldId: string;
+        }>) {
+            const { formId, fieldId } = action.payload;
+            if (!state[formId]) {
+                return;
+            }
+
+            delete state[formId].fields[fieldId];
         },
         resetForm: () => initialState
     },

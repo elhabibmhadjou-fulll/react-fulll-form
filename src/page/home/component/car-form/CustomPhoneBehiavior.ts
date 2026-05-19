@@ -1,5 +1,4 @@
-import type { FieldUIInput, UIFlag } from "../../../../fulll-lib";
-import type { IBehavior } from "../../../../fulll-lib";
+import type { BehaviorContext, IBehavior, UIFlag } from "../../../../fulll-lib";
 
 /**
  * Form-specific behavior: while the phone is being validated remotely, lock
@@ -7,11 +6,17 @@ import type { IBehavior } from "../../../../fulll-lib";
  * form that uses it — the framework only exposes the IBehavior contract.
  */
 export class CustomPhoneBehavior implements IBehavior {
-  getUIFlags({ touched, validator }: FieldUIInput): UIFlag[] {
-    const state = validator.getState().status;
-    if (state === "loading") return ["loading", "locked"];
-    if (!touched) return ["pristine"];
-    if (state === "error") return ["error"];
-    return ["valid"];
-  }
+    onMount(): UIFlag[] { return ["pristine"]; }
+    onChange(_v: string, ctx: BehaviorContext): UIFlag[] { return this.compute(ctx); }
+    onBlur(ctx: BehaviorContext): UIFlag[] { return this.compute(ctx); }
+    onSubmit(ctx: BehaviorContext): UIFlag[] { return this.compute(ctx); }
+    onValidationResolved(ctx: BehaviorContext): UIFlag[] { return this.compute(ctx); }
+
+    private compute(ctx: BehaviorContext): UIFlag[] {
+        const state = ctx.validator.getState().status;
+        if (state === "loading") return ["loading", "locked"];
+        if (!ctx.touched) return ["pristine"];
+        if (state === "error") return ["error"];
+        return ["valid"];
+    }
 }

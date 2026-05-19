@@ -1,98 +1,105 @@
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { useEffect, useMemo, useSyncExternalStore } from "react";
 import type { UseFieldProps } from "./props";
-import { toVerdict } from "./toVerdict";
-import { formSlice, useAppDispatch, useAppSelector } from "../../../../redux";
-import { getFormFieldById } from "../../util";
 import type { FieldState } from "../../util/state";
 import { DefaultBehavior, type UIFlag } from "../../behavior";
+import { FieldController } from "../../controller";
+import { formSlice, useAppDispatch, useAppSelector } from "../../../../redux";
+import { getFormFieldById } from "../../util";
+import { toFieldStatus } from "./toFieldStatus";
+import { toVerdict } from "./toVerdict";
 
 export type FieldStatus = FieldState<string>["status"];
 
+/**
+ * Thin React/Redux adapter on top of `FieldController`. The controller owns
+ * the per-field state machine; this hook only bridges:
+ *   React lifecycle ↔ controller.mount/unmount/change/blur
+ *   Redux form slice  ↔ controller snapshot
+ */
 export function useField(props: UseFieldProps) {
-    const { formId, fieldId, validator, value, required } = props;
-    const behaviors = props.behaviors && props.behaviors.length > 0
-        ? props.behaviors
-        : [new DefaultBehavior()];
-
-    const [touched, setTouched] = useState(false);
+    const { formId, fieldId, validator, value, required, behaviors } = props;
     const dispatch = useAppDispatch();
-    const formStatus = useAppSelector((state) => state.form[formId]?.status);
-    const field = useAppSelector((state) => getFormFieldById(state.form[formId], fieldId));
+    const formStatus = useAppSelector((s) => s.form[formId]?.status);
+    const existingField = useAppSelector((s) => getFormFieldById(s.form[formId], fieldId));
 
-    // Re-render whenever the validator's internal state changes
-    useSyncExternalStore(
-        (cb) => validator.subscribe(cb),
-        () => validator.getState(),
+    const controller = useMemo(
+        () => new FieldController(
+            validator,
+            behaviors && behaviors.length > 0 ? behaviors : [new DefaultBehavior()],
+            { initialValue: value ?? existingField?.value ?? "", required },
+        ),
+        // Recreate only on identity change. Other prop changes are pushed via setters below.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [formId, fieldId],
     );
 
-    // Mount: register the field. Hydrate from any pre-existing Redux state +
-    // current validator status — the field may already exist if the layout
-    // didn't unmount the form (only the layout is responsible for resetting).
+    const snap = useSyncExternalStore(
+        (cb) => controller.subscribe(cb),
+        () => controller.getSnapshot(),
+    );
+
+    // mount/unmount + initial registerField
     useEffect(() => {
-        const verdict = toVerdict(validator.getState());
-        const status: FieldStatus = field?.status
-            ?? (verdict === "error"
-                ? { value: "error", errors: validator.getErrors() }
-                : { value: verdict });
+        controller.mount();
+        const initial = controller.getSnapshot();
         dispatch(formSlice.actions.registerField({
             formId,
             field: {
                 id: fieldId,
-                value: value ?? field?.value ?? "",
-                status,
+                value: initial.value,
+                status: toFieldStatus(initial.validatorStatus, initial.errors),
             },
         }));
-    }, [formId, fieldId]);
+        return () => controller.unmount();
+    }, [controller, dispatch, formId, fieldId]);
 
-    // External `value` prop changes (controlled-by-parent case)
+    // external `value` prop (controlled-by-parent case)
     useEffect(() => {
         if (value !== undefined) {
-            runValidation(value);
+            controller.change(value);
         }
-    }, [value, formId, fieldId]);
+    }, [value, controller]);
 
-    function runValidation(nextValue: string) {
+    // `required` prop changes
+    useEffect(() => { controller.setRequired(required); }, [required, controller]);
+
+    // bridge form-level submitting status into the controller
+    useEffect(() => {
+        const submitting = formStatus?.value === "submitting";
+        controller.setSubmitting(submitting);
+        if (submitting) controller.submit();
+    }, [formStatus?.value, controller]);
+
+    // reflect snapshot changes into Redux
+    useEffect(() => {
         dispatch(formSlice.actions.updateField({
-            formId, fieldId, value: nextValue, status: "idle",
+            formId,
+            fieldId,
+            value: snap.value,
+            status: toVerdict({
+                status: snap.validatorStatus,
+                errors: snap.errors,
+            }),
+            errors: snap.errors,
         }));
-        validator.setOptions({ required }).handleAsync(nextValue).then(() => {
-            dispatch(formSlice.actions.updateFieldStatus({
-                formId,
-                fieldId,
-                status: toVerdict(validator.getState()),
-                errors: validator.getErrors(),
-            }));
-        });
-    }
+    }, [snap.value, snap.validatorStatus, snap.errors.length, dispatch, formId, fieldId]);
 
-    function onChange(newValue: string) {
-        runValidation(newValue);
-    }
-
-    function onBlur() {
-        setTouched(true);
-    }
-
-    // Behaviors are pure: derive UI flags from current state.
-    const flags: UIFlag[] = behaviors.flatMap(b => b.getUIFlags({
-        value: field?.value ?? "",
-        touched,
-        submitting: formStatus?.value === "submitting",
-        validator,
-    }));
-
-    const hasFlag = (f: UIFlag) => flags.includes(f);
+    const hasFlag = (f: UIFlag) => snap.flags.includes(f);
 
     return {
-        field,
-        flags,
+        field: {
+            id: fieldId,
+            value: snap.value,
+            status: toFieldStatus(snap.validatorStatus, snap.errors),
+        },
+        flags: snap.flags,
         isPristine: hasFlag("pristine"),
         isLoading: hasFlag("loading"),
         isLocked: hasFlag("locked"),
         showError: hasFlag("error"),
-        errorMessage: hasFlag("error") ? validator.getFirstError() : undefined,
-        isSubmitting: formStatus?.value === "submitting",
-        onChange,
-        onBlur,
+        errorMessage: hasFlag("error") ? validator.getFirstError() ?? undefined : undefined,
+        isSubmitting: snap.submitting,
+        onChange: (v: string) => controller.change(v),
+        onBlur: () => controller.blur(),
     };
 }

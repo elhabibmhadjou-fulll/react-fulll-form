@@ -1,17 +1,9 @@
 import { TextField as MuiTextField, Stack, CircularProgress, InputAdornment } from "@mui/material";
 import type { TextFieldProps } from "./props";
-import { useField } from "../../fulll-lib/form-core";
+import { useTextField } from "./useTextField";
 
 export function TextField(props: TextFieldProps) {
-    const controller = useField({
-        formId: props.formId,
-        fieldId: props.name,
-        name: props.name,
-        validator: props.validator,
-        behaviors: props?.behaviors,
-        value: props.value,
-        required: props.required,
-    });
+    const controller = useTextField(props);
 
     return <Stack spacing={2}>
         <MuiTextField
@@ -23,9 +15,12 @@ export function TextField(props: TextFieldProps) {
             onBlur={controller.onBlur}
             error={controller.showError}
             helperText={controller.showError ? controller.errorMessage : undefined}
-            disabled={controller.isSubmitting || controller.isLocked}
+            disabled={controller.isSubmitting}
             slotProps={{
                 input: {
+                    // `readOnly` (not `disabled`) keeps the input focusable while
+                    // the field is locked — avoids losing focus on every loading flip.
+                    readOnly: controller.isLocked,
                     endAdornment: controller.isLoading ? (
                         <InputAdornment position="end"><CircularProgress size={20} /></InputAdornment>
                     ) : undefined,

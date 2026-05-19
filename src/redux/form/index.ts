@@ -2,7 +2,7 @@ import { createFormSlice } from "../../fulll-lib/form-core";
 
 export const FORM_1 = {
     id: "myExampleForm1",
-    fields: ["name", "email"]
+    fields: ["name", "email", "emailDebounced", "prefill", "cardType", "cardTypeDefault"]
 } as const
 
 export const FORM_2 = {

@@ -17,8 +17,7 @@ export function AnotherForm() {
     );
     return <Stack spacing={2}>
         <Typography variant='h6'>Another Form</Typography>
-            <Typography variant='body1'>(asynchronous form form)</Typography>
-
+        <Typography variant='body1'>(asynchronous form form)</Typography>
         <TextField
             formId={FORM_2.id}
             name='name'

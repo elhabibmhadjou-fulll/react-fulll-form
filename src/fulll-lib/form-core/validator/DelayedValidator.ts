@@ -12,27 +12,23 @@ export class DelayedValidator extends IAsyncValidator<string> {
         this.delayMs = delayMs;
     }
 
-    protected validate(value?: string): void {
-        // Only used for the synchronous required-check; delegate errors to inner
-        this.inner.handle(value);
-        for (const err of this.inner.getErrors()) {
-            this.addError(err);
-        }
+    /** Sync phase is a no-op: the real validation runs in `validateAsync`
+     *  after the simulated network delay. */
+    protected validate(_value?: string): void {
+        // intentionally empty
     }
 
     protected override async validateAsync(value?: string): Promise<void> {
-        if (this.timer) {
-            clearTimeout(this.timer);
-            return new Promise((resolve) => {
-                this.timer = setTimeout(() => {
-                    this.inner.handle(value);
-                    // copy errors after the "HTTP call"
-                    for (const err of this.inner.getErrors()) {
-                        this.addError(err);
-                    }
-                    resolve();
-                }, this.delayMs);
-            });
-        }
+        if (this.timer) clearTimeout(this.timer);
+        return new Promise((resolve) => {
+            this.timer = setTimeout(() => {
+                this.inner.handle(value);
+                for (const err of this.inner.getErrors()) {
+                    this.addError(err);
+                }
+                this.timer = null;
+                resolve();
+            }, this.delayMs);
+        });
     }
 }

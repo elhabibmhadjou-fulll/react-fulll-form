@@ -1,14 +1,14 @@
-import type { IBehavior } from "../../fulll-lib/form-core/behavior/IBehavior";
+import type { IFieldBehavior } from "../../behavior/IFieldBehavior";
 import type { FieldStateId, FormStateId } from "../../redux";
 import type { IValidator } from "../../fulll-lib/form-core/validator/IValidator";
 
-export type TextFieldProps = {
-    name: FieldStateId
+export type SelectFieldProps = {
+    name: FieldStateId;
     label: string;
-    placeholder?: string;
+    options: { label: string; value: string }[];
     value?: string;
     required?: boolean;
     formId: FormStateId;
     validator: IValidator<string>;
-    behaviors?: IBehavior[]
+    behaviors?: IFieldBehavior[];
 }

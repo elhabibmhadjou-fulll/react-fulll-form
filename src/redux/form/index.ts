@@ -1,8 +1,16 @@
 import { createFormSlice } from "../../fulll-lib/form-core";
 
-export const FORM_NAME_1 = "myExampleForm1"
-export const FORM_NAME_2 = "myExampleForm2"
+export const FORM_1 = {
+    id: "myExampleForm1",
+    fields: ["name", "email"]
+} as const
 
-export type FormStateId = typeof FORM_NAME_1 | typeof FORM_NAME_2;
-export const formSlice = createFormSlice<FormStateId>("form");
+export const FORM_2 = {
+    id: "myExampleForm2",
+    fields: ["name", "phone"]
+} as const
+
+export type FormStateId = typeof FORM_1['id'] | typeof FORM_2["id"];
+export type FieldStateId = typeof FORM_1['fields'][number] | typeof FORM_2['fields'][number];
+export const formSlice = createFormSlice<FormStateId, FieldStateId>("form");
 export const formReducer = formSlice.reducer;

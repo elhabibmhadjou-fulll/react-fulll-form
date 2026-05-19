@@ -1,17 +1,17 @@
-export type FormId<T extends string> = T extends string ? T : never;
+export type FormId<Fo extends string> = Fo extends string ? Fo : never;
+export type FieldId<Fi extends string> = Fi extends string ? Fi : never;
 
-export type FormState<T extends FormId<string>> = Record<T, FormStateItem<T>>;
+export type FormState<Fo extends FormId<string>, Fi extends FieldId<string>> = Record<Fo, FormStateItem<Fo, Fi>>;
 
-export type FormStateItem<T extends FormId<string>> = {
-    id: T;
+export type FormStateItem<Fo extends FormId<string>, Fi extends FieldId<string>> = {
+    id: Fo;
     name: string;
-    status: "idle" | "submitting" | "submitted" | "error"
-    fields: Record<string, FieldState>
+    status: { value: "idle" |  "submitting" | "submitted" } | { value: "error", errors: string[] };
+    fields: Record<Fi, FieldState<Fi>>
 }
 
-export interface FieldState {
-    status: "idle" | "valid" | "error"
-    id: string
-    name: string
+export interface FieldState<Fi extends FieldId<string>> {
+    status: { value: "idle" } | { value: "valid" } | { value: "error", errors: string[] };
+    id: Fi
     value: string
 }

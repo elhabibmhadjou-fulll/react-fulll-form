@@ -1,5 +1,8 @@
-import type { FormStateItem } from "./state";
+import type { FieldState, FormStateItem } from "./state";
 
-export function hasFieldError<T extends string>(form: FormStateItem<T>): boolean {
-    return Object.values(form.fields).some(field => field.status === "error");
+export function hasFieldError<Fo extends string, Fi extends string>(form: FormStateItem<Fo, Fi>): boolean {
+    const fields = Object.values(form.fields) as FieldState<Fi>[];
+    return fields.some(
+        field => field.status.value === "error",
+    );
 }

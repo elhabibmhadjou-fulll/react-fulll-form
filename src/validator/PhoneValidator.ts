@@ -1,7 +1,7 @@
-import { IValidator } from "./IValidator";
+import { IValidator } from "../fulll-lib/form-core/validator/IValidator";
 
 export class PhoneValidator extends IValidator<string> {
     public validate(value?: string) {
-        this.addError(value?.length !== 10, "Phone number must be 10 digits");
+        this.addError(!/^\d{10}$/.test(value ?? ""), "Phone number must be 10 digits");
     }
 }

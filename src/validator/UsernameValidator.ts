@@ -1,4 +1,4 @@
-import { IValidator } from "./IValidator";
+import { IValidator } from "../fulll-lib/form-core/validator/IValidator";
 
 export class UsernameValidator extends IValidator<string> {
     public validate(value: string){

@@ -1,16 +1,41 @@
-
 export type ValidationOption = {
     required?: boolean;
 }
+
+export type ValidatorState = { status: "idle" | "loading" | "valid" } | { status: "error", errors: string[] };
+export type ValidatorListener = () => void;
 
 export abstract class IValidator<T> {
     private value?: T;
     private errors: Map<number, string | null> = new Map();
     private options?: ValidationOption;
+    private state: ValidatorState = { status: "idle" };
+    private listeners: Set<ValidatorListener> = new Set();
 
     public setOptions(options: ValidationOption) {
         this.options = options;
         return this;
+    }
+
+    public getState(): ValidatorState {
+        return this.state;
+    }
+
+    protected setState(state: ValidatorState): void {
+        if (this.state === state) {
+            return;
+        }
+        this.state = state;
+        this.notify();
+    }
+
+    public subscribe(listener: ValidatorListener): () => void {
+        this.listeners.add(listener);
+        return () => this.listeners.delete(listener);
+    }
+
+    private notify(): void {
+        this.listeners.forEach(l => l());
     }
 
     public hasError(): boolean {
@@ -18,24 +43,11 @@ export abstract class IValidator<T> {
     }
 
     public getErrors(): string[] {
-        return Array.from(this.errors.values())
-            .filter((error): error is string => error !== null);
+        return Array.from(this.errors.values()).filter((e): e is string => e !== null);
     }
 
     public getFirstError(): string | null {
-        for (const error of this.errors.values()) {
-            if (error !== null) return error;
-        }
-        return null;
-    }
-
-    public getCurrentError(): string | null {
-        const values = Array.from(this.errors.values());
-        for (let i = values.length - 1; i >= 0; i--) {
-            if (values[i] !== null) {
-                return values[i];
-            }
-        }
+        for (const e of this.errors.values()) if (e !== null) return e;
         return null;
     }
 
@@ -45,10 +57,8 @@ export abstract class IValidator<T> {
         const index = this.errors.size;
         if (typeof invalidOrMessage === 'string') {
             this.errors.set(index, invalidOrMessage);
-        } else {
-            if(message) {
-                this.errors.set(index, invalidOrMessage ? message : null);
-            }
+        } else if (message) {
+            this.errors.set(index, invalidOrMessage ? message : null);
         }
     }
 
@@ -60,6 +70,7 @@ export abstract class IValidator<T> {
         return false;
     }
 
+    /** Synchronous validation — sets state directly. */
     public handle(value?: T) {
         this.value = value;
         this.errors = new Map();
@@ -68,6 +79,7 @@ export abstract class IValidator<T> {
 
         if (this.options?.required && empty) {
             this.addError("This field is required");
+            this.setState({ status: "error", errors: this.getErrors() });
             return this;
         }
 
@@ -75,6 +87,16 @@ export abstract class IValidator<T> {
             this.validate(value);
         }
 
+        this.setState(
+            this.hasError()
+                ? { status: "error", errors: this.getErrors() }
+                : { status: "valid" });
+        return this;
+    }
+
+    /** Async-aware validation. Sync validators just delegate to handle(). */
+    public async handleAsync(value?: T): Promise<this> {
+        this.handle(value);
         return this;
     }
 

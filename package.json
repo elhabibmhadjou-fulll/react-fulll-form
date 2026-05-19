@@ -1,8 +1,9 @@
 {
-  "name": "form-event",
+  "name": "react-form-fulll",
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "author": "elhabibmhadjou-fulll (https://github.com/elhabibmhadjou-fulll)",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
